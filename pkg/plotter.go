@@ -39,6 +39,9 @@ type IrrationalPlotter struct {
 	// It is in the form of [x, y] coordinates.
 	cursor [2]float64
 
+	// angleSum allows for a "fibonacci" plot.
+	angleSum float64
+
 	// Zoom level.
 	zoom float64
 	// For Panning.
@@ -91,8 +94,11 @@ func (i *IrrationalPlotter) Update() error {
 		return fmt.Errorf("error in strconv.Atoi call: %w", err)
 	}
 
+	// For a "fibonacci" plot.
+	i.angleSum += float64(angleDeg)
+
 	// Convert to radians to use with trig functions.
-	angleRad := float64(angleDeg) * math.Pi / 180.0
+	angleRad := i.angleSum * math.Pi / 180.0
 	// End coordinates of the new line.
 	endX := i.cursor[0] + i.lineLen*math.Cos(angleRad)
 	endY := i.cursor[1] + i.lineLen*math.Sin(-angleRad)
