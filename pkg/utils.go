@@ -9,18 +9,18 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// Helper function to save Ebiten screen as image.
-func saveImage(img *ebiten.Image, path string) error {
+// saveScreenAsImage saves the given screen as an image.
+func saveScreenAsImage(screen *ebiten.Image, path string) error {
 	// Create a new RGBA image.
-	bounds := img.Bounds()
+	bounds := screen.Bounds()
 	width, height := bounds.Dx(), bounds.Dy()
 	// Create Go's image object that can be saved to a file.
 	goImage := image.NewRGBA(image.Rect(0, 0, width, height))
 
 	// Draw the Ebiten image to the Go image.
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
-			goImage.Set(x, y, img.At(x, y))
+	for y := range height {
+		for x := range width {
+			goImage.Set(x, y, screen.At(x, y))
 		}
 	}
 
