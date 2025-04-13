@@ -15,8 +15,9 @@ import (
 // NewIrrationalPlotter returns a new instance of the IrrationalPlotter.
 //
 // "irr" is the irrational number with decimal point removed.
-func NewIrrationalPlotter(irr string, screenSize [2]float64) *IrrationalPlotter {
+func NewIrrationalPlotter(name, irr string, screenSize [2]float64) *IrrationalPlotter {
 	return &IrrationalPlotter{
+		name:       name,
 		irr:        irr,
 		lineLen:    10,
 		screenSize: screenSize,
@@ -27,6 +28,8 @@ func NewIrrationalPlotter(irr string, screenSize [2]float64) *IrrationalPlotter 
 
 // IrrationalPlotter implementes the ebiten.Game interface to plot irrational numbers.
 type IrrationalPlotter struct {
+	// name of the irrational number.
+	name string
 	// irr is the irrational number that will be plotted.
 	irr string
 	// lineLen is the length of each line in the plot.
@@ -39,7 +42,6 @@ type IrrationalPlotter struct {
 	// cursor is the current cursor position. It is the starting position for the next line.
 	// It is in the form of [x, y] coordinates.
 	cursor [2]float64
-
 	// angleSum allows for a "fibonacci" plot.
 	angleSum int64
 
@@ -80,6 +82,11 @@ func (i *IrrationalPlotter) Draw(screen *ebiten.Image) {
 
 	progress := 100 * float64(i.idx) / float64(len(i.irr))
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Index: %d (%.2f%%)", i.idx, progress), 0, 0)
+
+	// If the plotting is done, save the image.
+	if i.isAlmostDone() {
+		// saveImage(screen, fmt.Sprintf("showcase/%s-%d.png", i.name, time.Now().Unix()))
+	}
 }
 
 func (i *IrrationalPlotter) Update() error {
@@ -88,8 +95,7 @@ func (i *IrrationalPlotter) Update() error {
 	i.handleDrag()
 
 	// Early return if no digits are left to print.
-	if i.idx+3 > int64(len(i.irr)) {
-		fmt.Println("Number fully plotted.")
+	if i.isDone() {
 		return nil
 	}
 
@@ -175,4 +181,15 @@ func (i *IrrationalPlotter) worldToScreen(x, y float64) (float64, float64) {
 	screenX := (x+i.offset[0])*i.zoom + i.screenSize[0]/2
 	screenY := (y+i.offset[1])*i.zoom + i.screenSize[1]/2
 	return screenX, screenY
+}
+
+// isDone reports true if the plotting is complete.
+func (i *IrrationalPlotter) isDone() bool {
+	return i.idx+3 > int64(len(i.irr))
+}
+
+// isAlmostDone reports true if there are less than or equal to two steps left.
+// It is useful when something needs to be done in the Draw method before Update terminates the game.
+func (i *IrrationalPlotter) isAlmostDone() bool {
+	return i.idx+6 > int64(len(i.irr))
 }

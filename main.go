@@ -20,7 +20,7 @@ func main() {
 	ebiten.SetWindowSize(int(screenSize[0]), int(screenSize[1]))
 	ebiten.SetWindowTitle("Irrational Number Visualization - Golden Ratio")
 
-	if err := ebiten.RunGame(pkg.NewIrrationalPlotter(phi, screenSize)); err != nil {
+	if err := ebiten.RunGame(pkg.NewIrrationalPlotter("Phi", phi, screenSize)); err != nil {
 		panic("error in ebiten.RunGame: " + err.Error())
 	}
 }
