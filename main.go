@@ -8,7 +8,7 @@ import (
 	_ "embed"
 )
 
-var screenSize = [2]float64{1024, 720}
+var screenSize = [2]float64{1920, 1080}
 
 //go:embed nums/phi-100k.txt
 var phi string

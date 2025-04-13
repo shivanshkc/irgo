@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
@@ -40,7 +41,7 @@ type IrrationalPlotter struct {
 	cursor [2]float64
 
 	// angleSum allows for a "fibonacci" plot.
-	angleSum float64
+	angleSum int64
 
 	// Zoom level.
 	zoom float64
@@ -72,8 +73,13 @@ func (i *IrrationalPlotter) Draw(screen *ebiten.Image) {
 	for _, line := range i.lines {
 		x1, y1 := i.worldToScreen(line.p1[0], line.p1[1])
 		x2, y2 := i.worldToScreen(line.p2[0], line.p2[1])
-		vector.StrokeLine(screen, float32(x1), float32(y1), float32(x2), float32(y2), 1, color.White, false)
+
+		col := color.RGBA{R: 255, G: uint8(line.angleRad * 255 * 0.5 / math.Pi), B: 255, A: 1}
+		vector.StrokeLine(screen, float32(x1), float32(y1), float32(x2), float32(y2), 1, col, false)
 	}
+
+	progress := 100 * float64(i.idx) / float64(len(i.irr))
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Index: %d (%.2f%%)", i.idx, progress), 0, 0)
 }
 
 func (i *IrrationalPlotter) Update() error {
@@ -95,10 +101,10 @@ func (i *IrrationalPlotter) Update() error {
 	}
 
 	// For a "fibonacci" plot.
-	i.angleSum += float64(angleDeg)
+	i.angleSum += int64(angleDeg)
 
 	// Convert to radians to use with trig functions.
-	angleRad := i.angleSum * math.Pi / 180.0
+	angleRad := float64(i.angleSum%360) * math.Pi / 180.0
 	// End coordinates of the new line.
 	endX := i.cursor[0] + i.lineLen*math.Cos(angleRad)
 	endY := i.cursor[1] + i.lineLen*math.Sin(-angleRad)
