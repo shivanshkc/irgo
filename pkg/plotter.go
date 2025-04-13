@@ -15,6 +15,7 @@ type vec2 struct {
 // line represents a line between 2 points.
 type line struct {
 	start, end vec2
+	angleRad   float64
 }
 
 // Plotter is responsible to tokenize the given number into lines.
@@ -48,18 +49,23 @@ func (p *Plotter) AddLine() error {
 
 	// For a "fibonacci" plot.
 	p.angleSum += int64(angleDeg)
-	var lineLength = 10.0
+	p.angleSum = p.angleSum % 360
 
 	// Convert to radians to use with trig functions.
-	angleRad := float64(p.angleSum%360) * math.Pi / 180.0
+	angleRad := float64(p.angleSum) * math.Pi / 180.0
+	// Line length does not affect this plot.
+	// Bigger line lengths result in (effectively) zoomed in plots.
+	var lineLength = 10.0
+
 	// End coordinates of the new line.
 	endX := p.cursor.x + lineLength*math.Cos(angleRad)
 	endY := p.cursor.y + lineLength*math.Sin(-angleRad)
 
 	// Add the line.
 	p.lines = append(p.lines, line{
-		start: vec2{x: p.cursor.x, y: p.cursor.y},
-		end:   vec2{x: endX, y: endY},
+		start:    vec2{x: p.cursor.x, y: p.cursor.y},
+		end:      vec2{x: endX, y: endY},
+		angleRad: angleRad,
 	})
 
 	// Update the cursor for the next line.
@@ -74,7 +80,10 @@ func (p *Plotter) AddLine() error {
 func (p *Plotter) Lines() []line { return p.lines }
 
 // LineColor returns appropriate color for the given line.
-func (p *Plotter) LineColor(l line) color.Color { return color.White }
+func (p *Plotter) LineColor(l line) color.Color {
+	angleColor := uint8(l.angleRad * 255 * 0.5 / math.Pi)
+	return color.RGBA{R: 255, G: angleColor, B: 255, A: 1}
+}
 
 // Progress returns how many digits and what percent of the number has been tokenized.
 func (p *Plotter) Progress() (int, float64) {

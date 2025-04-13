@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	screenW, screenH = 1024, 720
+	screenW, screenH = 1920, 1080
 )
 
 func main() {
