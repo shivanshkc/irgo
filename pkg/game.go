@@ -104,7 +104,7 @@ func (g *Game) handleDrag() {
 	x, y := float64(xi), float64(yi)
 
 	g.panOffset.x += float64(x-g.dragStart.x) / g.zoom
-	g.panOffset.y += float64(y-g.dragStart.x) / g.zoom
+	g.panOffset.y += float64(y-g.dragStart.y) / g.zoom
 	g.dragStart.x = x
 	g.dragStart.y = y
 }
