@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 
 	_ "embed"
@@ -40,6 +41,7 @@ func NewIrrationalPlotter(irr string) *IrrationalPlotter {
 		irr:     irr,
 		lineLen: 20,
 		cursor:  [2]float64{screenWidth / 2, screenHeight / 2},
+		zoom:    1,
 	}
 }
 
@@ -55,6 +57,11 @@ type IrrationalPlotter struct {
 	// cursor is the current cursor position. It is the starting position for the next line.
 	// It is in the form of [x, y] coordinates.
 	cursor [2]float64
+
+	// pan controls.
+	offsetX, offsetY float64
+	// zoom control.
+	zoom float64
 
 	// lines is the list of lines to draw.
 	lines []Line
@@ -76,12 +83,23 @@ func (i *IrrationalPlotter) Draw(screen *ebiten.Image) {
 
 	// Draw each line.
 	for _, line := range i.lines {
-		x1, y1, x2, y2 := float32(line.p1[0]), float32(line.p1[1]), float32(line.p2[0]), float32(line.p2[1])
-		vector.StrokeLine(screen, x1, y1, x2, y2, 1, color.White, false)
+		x1, y1 := i.worldToScreen(line.p1[0], line.p1[1])
+		x2, y2 := i.worldToScreen(line.p2[0], line.p2[1])
+		vector.StrokeLine(screen, float32(x1), float32(y1), float32(x2), float32(y2), 1, color.White, false)
 	}
 }
 
 func (i *IrrationalPlotter) Update() error {
+	// Zoom-in control.
+	if inpututil.IsKeyJustPressed(ebiten.KeyEqual) || inpututil.IsKeyJustPressed(ebiten.KeyNumpadAdd) {
+		i.zoom *= 1.2
+	}
+	// Zoom-out control.
+	if inpututil.IsKeyJustPressed(ebiten.KeyMinus) || inpututil.IsKeyJustPressed(ebiten.KeyNumpadSubtract) {
+		// Zoom out
+		i.zoom *= 0.8
+	}
+
 	// Early return if no digits are left to print.
 	if i.idx+3 > int64(len(i.irr)) {
 		fmt.Println("Number fully printed.")
@@ -114,4 +132,11 @@ func (i *IrrationalPlotter) Update() error {
 	i.idx += 3
 
 	return nil
+}
+
+// worldToScreen transforms the given point as per the offset and zoom levels.
+func (i *IrrationalPlotter) worldToScreen(x, y float64) (float64, float64) {
+	screenX := (x + i.offsetX) * i.zoom //+ screenWidth/2
+	screenY := (y + i.offsetY) * i.zoom //+ screenHeight/2
+	return screenX, screenY
 }
