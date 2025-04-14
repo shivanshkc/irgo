@@ -61,7 +61,7 @@ func (g *Game) Update() error {
 	g.handleDrag()
 
 	if err := g.plotter.AddLine3(); err != nil {
-		return fmt.Errorf("error in AddLine3 call: %w", err)
+		return fmt.Errorf("failed to add line: %w", err)
 	}
 	return nil
 }
