@@ -39,7 +39,7 @@ func (g *Game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	// Clear the screen.
-	screen.Fill(color.RGBA{20, 20, 20, 255})
+	screen.Fill(color.RGBA{R: 20, G: 20, B: 20, A: 255})
 
 	for _, line := range g.plotter.Lines() {
 		x1, y1 := g.worldToScreen(line.start.x, line.start.y)
@@ -60,7 +60,9 @@ func (g *Game) Update() error {
 	g.handleZoom()
 	g.handleDrag()
 
-	g.plotter.AddLine()
+	if err := g.plotter.AddLine3(); err != nil {
+		return fmt.Errorf("error in AddLine3 call: %w", err)
+	}
 	return nil
 }
 

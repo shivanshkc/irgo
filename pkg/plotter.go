@@ -20,10 +20,11 @@ type line struct {
 
 // Plotter is responsible to tokenize the given number into lines.
 type Plotter struct {
-	num      string
-	idx      int
-	angleSum int64
-	cursor   vec2
+	num string
+
+	lastIdx int
+	lastAng int
+	lastPos vec2
 
 	lines []line
 }
@@ -33,46 +34,71 @@ func NewPlotter(num string) *Plotter {
 	return &Plotter{num: num}
 }
 
-// AddLine executes one step of tokenization and so it adds one new line to the list of lines.
-func (p *Plotter) AddLine() error {
-	// Do nothing if no digits are left.
-	if p.idx+3 > len(p.num) {
-		return nil
+// tokenize3 takes the next 3 digits of the number, assumes the number formed by those 3 digits to be a degree angle,
+// adds that angle to "lastAng", converts "lastAng" to radians, marks those three digits as used up and returns the
+// calculated radian angle.
+//
+// It returns -1 if less than 3 digits are left in the number.
+func (p *Plotter) tokenize3() (float64, error) {
+	// -1 should be detected by the caller as the end of tokenization.
+	if p.lastIdx+3 > len(p.num) {
+		return -1, nil
 	}
 
-	// Get the angle to plot.
-	angleString := p.num[p.idx : p.idx+3]
+	// Pick the next 3 digits.
+	angleString := p.num[p.lastIdx : p.lastIdx+3]
 	angleDeg, err := strconv.Atoi(angleString)
 	if err != nil {
-		return fmt.Errorf("error in strconv.Atoi call: %w", err)
+		return 0, fmt.Errorf("error in strconv.Atoi call: %w", err)
 	}
 
-	// For a "fibonacci" plot.
-	p.angleSum += int64(angleDeg)
-	p.angleSum = p.angleSum % 360
+	// Add and condense the angle.
+	p.lastAng += angleDeg
+	p.lastAng = p.lastAng % 360
+
+	// Mark the digits as used up.
+	p.lastIdx += 3
 
 	// Convert to radians to use with trig functions.
-	angleRad := float64(p.angleSum) * math.Pi / 180.0
+	return float64(p.lastAng) * math.Pi / 180.0, nil
+}
+
+// addLine uses the give angle and the lastPos to determine the next line in the sequence.
+// It appends that new line to the list of lines and updates lastPos for the next line to come.
+func (p *Plotter) addLine(angleRad float64) {
 	// Line length does not affect this plot.
 	// Bigger line lengths result in (effectively) zoomed in plots.
 	var lineLength = 10.0
 
 	// End coordinates of the new line.
-	endX := p.cursor.x + lineLength*math.Cos(angleRad)
-	endY := p.cursor.y + lineLength*math.Sin(-angleRad)
+	endX := p.lastPos.x + lineLength*math.Cos(angleRad)
+	endY := p.lastPos.y + lineLength*math.Sin(-angleRad)
 
 	// Add the line.
 	p.lines = append(p.lines, line{
-		start:    vec2{x: p.cursor.x, y: p.cursor.y},
+		start:    vec2{x: p.lastPos.x, y: p.lastPos.y},
 		end:      vec2{x: endX, y: endY},
 		angleRad: angleRad,
 	})
 
-	// Update the cursor for the next line.
-	p.cursor.x, p.cursor.y = endX, endY
-	// Update the index for the next 3 digits.
-	p.idx += 3
+	// Update the lastPos for the next line.
+	p.lastPos.x, p.lastPos.y = endX, endY
+}
 
+// AddLine3 obtains the line angle using tokenize3 and adds that line to the line list.
+func (p *Plotter) AddLine3() error {
+	// Get the next angle to plot.
+	angleRad, err := p.tokenize3()
+	if err != nil {
+		return fmt.Errorf("error in tokenize3 call: %w", err)
+	}
+	// -1 suggests that tokenization is complete. So, do nothing.
+	if angleRad == -1 {
+		return nil
+	}
+
+	// Add the line to the line list.
+	p.addLine(angleRad)
 	return nil
 }
 
@@ -82,10 +108,10 @@ func (p *Plotter) Lines() []line { return p.lines }
 // LineColor returns appropriate color for the given line.
 func (p *Plotter) LineColor(l line) color.Color {
 	angleColor := uint8(l.angleRad * 255 * 0.5 / math.Pi)
-	return color.RGBA{R: 255, G: angleColor, B: 255, A: 1}
+	return color.RGBA{R: 255, G: angleColor, B: 255, A: 255}
 }
 
 // Progress returns how many digits and what percent of the number has been tokenized.
 func (p *Plotter) Progress() (int, float64) {
-	return p.idx + 1, 100 * float64(p.idx) / float64(len(p.num))
+	return p.lastIdx + 1, 100 * float64(p.lastIdx) / float64(len(p.num))
 }
