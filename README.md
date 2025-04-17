@@ -38,6 +38,9 @@ If you're new to Ebiten, install it via:
 go get github.com/hajimehoshi/ebiten/v2
 ```
 
+Ebiten may require more steps to work.
+Visit their official [installation guide](https://ebitengine.org/en/documents/install.html) for help.
+
 ### 3. Run Irgo
 
 ```bash
