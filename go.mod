@@ -1,4 +1,4 @@
-module irgo
+module github.com/shivanshkc/irgo
 
 go 1.23.5
 

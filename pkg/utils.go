@@ -10,6 +10,8 @@ import (
 )
 
 // saveScreenAsImage saves the given screen as an image.
+//
+//nolint:unused // Will be used in the future so save high-quality screenshots.
 func saveScreenAsImage(screen *ebiten.Image, path string) error {
 	// Create a new RGBA image.
 	bounds := screen.Bounds()

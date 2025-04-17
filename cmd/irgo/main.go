@@ -1,12 +1,13 @@
 package main
 
 import (
-	"irgo/pkg"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
+
+	"github.com/shivanshkc/irgo/pkg"
 )
 
 const (
