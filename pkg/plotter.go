@@ -12,10 +12,11 @@ type vec2 struct {
 	x, y float64
 }
 
-// line represents a line between 2 points.
-type line struct {
+// lineListNode represents a node in a linked-list of lines.
+type lineListNode struct {
 	start, end vec2
 	angleRad   float64
+	next       *lineListNode
 }
 
 // Plotter is responsible to tokenize the given number into lines.
@@ -26,7 +27,8 @@ type Plotter struct {
 	lastAng int
 	lastPos vec2
 
-	lines []line
+	lineListHead *lineListNode
+	lineListTail *lineListNode
 }
 
 // NewPlotter returns a new Plotter object.
@@ -105,12 +107,22 @@ func (p *Plotter) addLine(angleRad float64) {
 	endX := p.lastPos.x + lineLength*math.Cos(angleRad)
 	endY := p.lastPos.y + lineLength*math.Sin(-angleRad)
 
-	// Add the line.
-	p.lines = append(p.lines, line{
+	nextLineNode := &lineListNode{
 		start:    vec2{x: p.lastPos.x, y: p.lastPos.y},
 		end:      vec2{x: endX, y: endY},
 		angleRad: angleRad,
-	})
+	}
+
+	// Add to the linked list.
+	if p.lineListHead == nil {
+		p.lineListHead = nextLineNode
+	} else if p.lineListTail == nil {
+		p.lineListTail = nextLineNode
+		p.lineListHead.next = p.lineListTail
+	} else {
+		p.lineListTail.next = nextLineNode
+		p.lineListTail = nextLineNode
+	}
 
 	// Update the lastPos for the next line.
 	p.lastPos.x, p.lastPos.y = endX, endY
@@ -150,11 +162,8 @@ func (p *Plotter) AddLine1() error {
 	return nil
 }
 
-// Lines returns the list of lines.
-func (p *Plotter) Lines() []line { return p.lines }
-
-// LineColor returns appropriate color for the given line.
-func (p *Plotter) LineColor(l line) color.Color {
+// lineColor returns appropriate color for the given line.
+func (p *Plotter) lineColor(l *lineListNode) color.Color {
 	angleColor := uint8(l.angleRad * 255 * 0.5 / math.Pi)
 	return color.RGBA{R: 255, G: angleColor, B: 255, A: 255}
 }
