@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/shivanshkc/irgo/compare/v1.0.0...v1.1.0) (2025-06-10)
+
+
+### Features
+
+* **core:** replace line array with linked list ([352a105](https://github.com/shivanshkc/irgo/commit/352a1050b647ae32b8c5dd76cf17c1850250ceb4))
+
 # 1.0.0 (2025-04-17)
 
 
