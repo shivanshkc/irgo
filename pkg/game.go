@@ -41,11 +41,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// Clear the screen.
 	screen.Fill(color.RGBA{R: 20, G: 20, B: 20, A: 255})
 
-	for _, line := range g.plotter.Lines() {
+	for line := g.plotter.lineListHead; line != nil; line = line.next {
 		x1, y1 := g.worldToScreen(line.start.x, line.start.y)
 		x2, y2 := g.worldToScreen(line.end.x, line.end.y)
 
-		col := g.plotter.LineColor(line)
+		col := g.plotter.lineColor(line)
 		vector.StrokeLine(screen, float32(x1), float32(y1), float32(x2), float32(y2), 1, col, false)
 	}
 
